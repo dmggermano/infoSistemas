@@ -8,27 +8,21 @@ uses
   Vcl.Grids, Vcl.DBGrids, Vcl.ExtCtrls, Vcl.Buttons,Vcl.StdCtrls, Vcl.Mask, System.JSON,
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
   FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
-  FireDAC.Comp.DataSet, FireDAC.Comp.Client
-
-
-
-
-  ;
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client;
 
 type
   TfCadClienteComCep = class(TForm)
-    Panel1: TPanel;
-    Panel2: TPanel;
-    Panel3: TPanel;
-    SpeedButton1: TSpeedButton;
-    Panel4: TPanel;
-    Panel5: TPanel;
-    Splitter1: TSplitter;
-    DBGrid1: TDBGrid;
-    DBNavigator1: TDBNavigator;
+    pnlTitulo: TPanel;
+    pnlRodape: TPanel;
+    pnlNavigator: TPanel;
+    pnlGrid: TPanel;
+    pnlCentral: TPanel;
+    splPnlCentral: TSplitter;
+    dbgfdCliente: TDBGrid;
+    dbnfdCliente: TDBNavigator;
     dsCadCliente: TDataSource;
-    Panel6: TPanel;
-    SpeedButton2: TSpeedButton;
+    pnlBarraButton: TPanel;
+    btnIncluir: TSpeedButton;
     fdCliente: TFDMemTable;
     fdClientenome: TStringField;
     fdClienteidentidade: TStringField;
@@ -43,17 +37,17 @@ type
     fdClientecomplemento: TStringField;
     fdClienteestado: TStringField;
     fdClientepais: TStringField;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label3: TLabel;
-    Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
-    Label7: TLabel;
-    Label8: TLabel;
-    Label9: TLabel;
-    Label10: TLabel;
-    Label11: TLabel;
+    lblNome: TLabel;
+    lblIdentidade: TLabel;
+    lblCPF: TLabel;
+    lblTelefone: TLabel;
+    lblEMail: TLabel;
+    lblCEP: TLabel;
+    lblLogradouro: TLabel;
+    lblCidade: TLabel;
+    lblUF: TLabel;
+    lblPais: TLabel;
+    lblBairro: TLabel;
     edtTelefone: TMaskEdit;
     edtCPF: TMaskEdit;
     edtEmail: TEdit;
@@ -65,15 +59,15 @@ type
     edtUF: TEdit;
     edtPais: TEdit;
     edtCEP: TMaskEdit;
-    Label12: TLabel;
+    lblComplemento: TLabel;
     edtComplemento: TEdit;
-    Label13: TLabel;
+    lblNumero: TLabel;
     edtNumero: TEdit;
     fdClientetransmissao: TStringField;
-    Label14: TLabel;
-    Edit1: TEdit;
+    lblEmailDestinatario: TLabel;
+    edtEmailDestinatario: TEdit;
     procedure FormCreate(Sender: TObject);
-    procedure SpeedButton2Click(Sender: TObject);
+    procedure btnIncluirClick(Sender: TObject);
     procedure edtUFExit(Sender: TObject);
     procedure edtCPFExit(Sender: TObject);
     procedure edtEmailExit(Sender: TObject);
@@ -81,12 +75,14 @@ type
     procedure edtTelefoneExit(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure edtNomeDblClick(Sender: TObject);
+    procedure dbgfdClienteDblClick(Sender: TObject);
   private
     procedure limpaEdit;
     function fValidarDados: Boolean;
     function incluiReg: Boolean;
     function transmitirDados: Boolean;
     function criaXML: Boolean;
+    function gravaOKEnvio: Boolean;
     { Private declarations }
   public
     { Public declarations }
@@ -99,7 +95,7 @@ implementation
 
 {$R *.dfm}
 
-uses uFuncoes, XMLDoc, XMLIntf ;
+uses uFuncoes, XMLDoc, XMLIntf;
 
 // incli dados na tabela/memoria
 procedure TfCadClienteComCep.edtCEPExit(Sender: TObject);
@@ -111,9 +107,7 @@ begin
   try
     mmJson := tmemo.Create(nil);
     mmJson.text:=ufuncoes.fBuscarPorCEP(edtCEP.Text);
-{
-    Strin vai para Objeto Json ==> capturar os valores
-}
+//  String vai para Objeto Json ==> capturar os valores
     xobj := TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(mmJson.Text),0) as TJSONObject;
     try
 //      edtCep.text := ufuncoes.fSoNumeros(xobj.GetValue<string>('cep'));
@@ -127,7 +121,7 @@ begin
      xobj.Free;
     end;
   except
-    showmessage('Verifique o CEP informado! Obrigado.');
+    MessageDlg('Verifique o CEP informado! Obrigado.', mtWarning, [mbOK], 0);
   end;
 
 end;
@@ -137,7 +131,7 @@ procedure TfCadClienteComCep.edtCPFExit(Sender: TObject);
 begin
   if (ufuncoes.fValidarCPF(edtCPF.Text) = false) then
   begin
-    showmessage('CPF inválido! Favor verificar.');
+    MessageDlg('CPF inválido! Favor verificar.', mtWarning, [mbOK], 0);
     edtCPF.SetFocus;
   end;
 end;
@@ -147,13 +141,14 @@ procedure TfCadClienteComCep.edtEmailExit(Sender: TObject);
 begin
   if (ufuncoes.fValidarEmail(edtEmail.Text) = false) then
   begin
-    showmessage('E-Mail inválido! Favor verificar.');
+    MessageDlg('E-Mail inválido! Favor verificar.', mtWarning, [mbOK], 0);
   end;
 end;
 
-// inclui dados nos campo edit.text
+//   inclui dados nos campo edit.text (facilitar teste - excluir posteriormente)
 procedure TfCadClienteComCep.edtNomeDblClick(Sender: TObject);
 begin
+// exit;
   edtNome.Text:='Drausio Mendes Germano';
   edtCPF.Text:='14488874886';
   edtEmail.Text:='dmggermano@gmail.com';
@@ -161,31 +156,32 @@ begin
   edtIdentidade.Text:='cpf';
   edtCEP.Text:='18057132';
   edtNumero.Text:='148';
+  edtCEP.SetFocus;
 end;
 
-
-//   validar maskEdit
+//  valida o campo telefone no exit do campo
 procedure TfCadClienteComCep.edtTelefoneExit(Sender: TObject);
 begin
-  try
-
-  except
-
+  if uFuncoes.fValidarTelefone(edtTelefone.Text) = false then
+  begin
+      MessageDlg('Campo obrigatório. Favor verificar.', mtWarning, [mbOK], 0);
   end;
 end;
 
+//  valida o campo uf no exit do campo
 procedure TfCadClienteComCep.edtUFExit(Sender: TObject);
 begin
-  edtUF.Text:=UpperCase(edtUF.Text);
+    edtUF.Text:=UpperCase(edtUF.Text);
 end;
 
+// fecha tabela/memoria ao sair do sistema
 procedure TfCadClienteComCep.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
     fdCliente.Active:=false;
-    fdCliente.Free;        ////////////////////////////////////
 end;
 
+// ativa tabela/memoria ao entrar do sistema
 procedure TfCadClienteComCep.FormCreate(Sender: TObject);
 begin
   fdCliente.Active:=true;
@@ -202,7 +198,7 @@ begin
         if (Components[i] is TMaskEdit) and (TMaskEdit(Components[i]).tag > 0)
            and (length(trim(TMaskEdit(Components[i]).Text)) <= 0) then
         begin
-            showmessage('Campo é obrigatorio.');
+            MessageDlg('Campo é obrigatorio.', mtWarning, [mbOK], 0);
             result := false;
             TMaskEdit(Components[i]).setfocus;
             result := false;
@@ -212,7 +208,7 @@ begin
         if (Components[i] is TEdit) and (TEdit(Components[i]).tag > 0)
            and (length(trim(TEdit(Components[i]).Text)) <= 0) then
         begin
-            showmessage('Campo é obrigatorio.');
+            MessageDlg('Campo é obrigatorio.', mtWarning, [mbOK], 0);
             result := false;
             TEdit(Components[i]).setfocus;
             TEdit(Components[i]).Brush.Color:=clYellow;
@@ -223,28 +219,37 @@ begin
 end;
 
 //   validar/inclui/transmite os dados
-procedure TfCadClienteComCep.SpeedButton2Click(Sender: TObject);
+procedure TfCadClienteComCep.btnIncluirClick(Sender: TObject);
 begin
+  { validar dados se false retorna }
   if fValidarDados = false then
   begin
-     showmessage('Favor verificar os dados!');
+     MessageDlg('Favor verificar os dados!', mtWarning, [mbOK], 0);
      exit;
   end;
+  { validar dados se false retorna }
   if incluiReg = false then
   begin
-     showmessage('Favor verificar, erro na conecção com a tabela/memória!');
+     MessageDlg('Favor verificar, erro na conecção com a tabela/memória!', mtWarning, [mbOK], 0);
      exit;
   end;
+  { envia email  se false retorna  }
   if transmitirDados = false then
   begin
-     showmessage('Favor verificar, erro na transmissão dos dados!');
+     MessageDlg('Favor verificar, erro na transmissão dos dados!', mtWarning, [mbOK], 0);
      exit;
+  end;
+  { grava na tabela/memoria OK do envio do registro }
+  if (gravaOKEnvio = false) then
+  begin
+        MessageDlg('Erro na confirmação do envio. ', mtWarning, [mbOK], 0);
+        exit;
   end;
   limpaEdit;
 end;
 
 
-///   limpa os campos apos incluir e transmitir
+//   limpa os campos apos incluir e transmitir
 procedure TfCadClienteComCep.limpaEdit;
 var
   i:integer;
@@ -263,17 +268,18 @@ begin
     edtNome.setfocus;
 end;
 
-/// <summary>
-///   transmite dados da tabela/memória por email
-/// </summary>
+//   transmite dados da registro da tabela/memória por email
 function TfCadClienteComCep.transmitirDados():Boolean;
 begin
+  { verifica a existencia do anexo XML }
   if (criaXML() = false) then
   begin
     result := false;
     exit;
   end;
-  if (uFuncoes.fEnviaEmail(edtEmail.Text,'cadCadastro','cadCadastro.XML','c:\temp\cadCliente.xml') = false) then
+
+  { Envia o email com o anexo }
+  if (uFuncoes.fEnviaEmail(edtEmail.Text,'cadCadastro','cadCadastro.XML - Germano (15) 991.973712.','c:\temp\cadCliente.xml') = false) then
   begin
     result := false;
     exit;
@@ -281,6 +287,7 @@ begin
   result := true;
 end;
 
+// cria e salva arquivo XML em disco
 function TfCadClienteComCep.criaXML():Boolean;
 var
   xarq:string;
@@ -288,17 +295,24 @@ var
   cadCliente,cabecalho,cliente,endereco : IXMLNode;
 begin
     try
+        { verifica se há registro para enviar }
+        if (fdCliente.FieldByName('nome').Value = null) then
+        begin
+            MessageDlg('Não há dados para transmitir!', mtWarning, [mbOK], 0);
+            exit;
+        end;
+
         { xarq ==> nome arquivo XML a ser salvo. }
         xarq := 'c:\temp';
         if uFuncoes.fCriaDiretorio(xarq) = false then
         begin
-          showmessage('Não localizada a pasta c:\temp para salvar o arquivo XML.');
+          MessageDlg('Não localizada a pasta c:\temp para salvar o arquivo XML.', mtWarning, [mbOK], 0);
           result := false;
           exit;
         end;
         xarq := xarq+'\cadCliente.xml';
 
-        { criando dados XML. }
+        { criando dados XML }
         tXMLDoc  := TXMLDocument.Create(nil);
         tXMLDoc.Active := true;
         tXMLDoc.Version := '1.0';
@@ -330,14 +344,21 @@ begin
           result := false;
       end;
     end;
-
-
 end;
 
 
-/// <summary>
-///   inclui dados na memória
-/// </summary>
+// transmite registro da dbgfdCliente/dbGrid novamente
+procedure TfCadClienteComCep.dbgfdClienteDblClick(Sender: TObject);
+begin
+    try
+      if transmitirDados = true then
+          gravaOKEnvio;
+    except
+
+    end;
+end;
+
+//   inclui dados na tabela/memória
 function TfCadClienteComCep.incluiReg():Boolean;
 begin
     try
@@ -360,6 +381,21 @@ begin
           result:=false;
     end;
     result:=true;
+end;
+
+//   edita dados na tabela/memória para ok apos transmissão
+function TfCadClienteComCep.gravaOKEnvio():Boolean;
+begin
+    try
+         fdCliente.Edit;
+         fdCliente.FieldByName('transmissao').Value:='OK';
+         fdCliente.Post;
+         MessageDlg('Operação realizada com sucesso! Obrigado. ', mtinformation, [mbOK], 0);
+    except
+         result := false;
+         exit;
+    end;
+    result := true;
 end;
 
 end.

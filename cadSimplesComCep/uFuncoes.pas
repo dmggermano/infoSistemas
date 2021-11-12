@@ -15,7 +15,6 @@ uses
 //  IdExplicitTLSClientServerBase
 
 
-
 /// <summary>
 ///   retorna true ou false para validação de CPF
 /// </summary>
@@ -37,22 +36,35 @@ function fSoNumeros(soNumeros:string):string;
 function fValidarEmail(email:string):Boolean;
 
 /// <summary>
+///   retorna true ou false para validação de telefone
+/// </summary>
+function fValidarTelefone(telefone:string):Boolean;
+
+/// <summary>
 ///   Busca endere pelo numero do CEP no correio
 /// </summary>
 function fBuscarPorCEP(cep:string):string;
 
 /// <summary>
-// - Rotina do botao abaixo testa a conexao com o servidor SMTP
-// - Se a configuração do servidor SMTP estiver correta é imediatamente exibida
-// uma mensagem de conexao com exito
-// - Caso contrário quando a conexão é testada demora-se muito para obter um
-// retorno de resposta e é exibida uma mensagem de erro ao conectar no servidor SMTP procedure
+///  Envio de email com anexo
+///  emailDestinatario => email de destino
+///  assundo => assundo do email
+///  texto => dados do corpo de email
+///  anexo => nome do arquivo a ser anexado (incluir caminho do arq)
 /// </summary>
 function fEnviaEmail(emailDestinatario,assunto,texto,anexo:string):Boolean;
 
-
-
 implementation
+
+
+function fValidarTelefone(telefone:string):Boolean;
+begin
+    result := true;
+    if length(trim(telefone)) < 10 then
+    begin
+        result:=false;
+    end;
+end;
 
 function fSoNumeros(soNumeros:string):string;
 var
@@ -71,12 +83,7 @@ var
   soma,peso,i,digito1,digito2:integer;
 begin
 try
-  if ((CPF = '00000000000') or (CPF = '11111111111') or
-      (CPF = '22222222222') or (CPF = '33333333333') or
-      (CPF = '44444444444') or (CPF = '55555555555') or
-      (CPF = '66666666666') or (CPF = '77777777777') or
-      (CPF = '88888888888') or (CPF = '99999999999') or
-      (length(CPF) <> 11))  then
+  if (length(CPF) <> 11)  then
             result := false;
 
 { *--  1º. Digito Verificador --* }
@@ -168,84 +175,106 @@ end;
 
 
 function fEnviaEmail(emailDestinatario,assunto,texto,anexo:string):Boolean;
+
+
+
 const
-  vServidorSMTP : string = 'smtp.gmail.com';
-  vUsuarioServ : string = 'dmggermanoteste@gmail.com';
-  vSenhaServ : string = 'Teste@148';
-  vPortaServ : string = '587';
+  vServidorSMTP : string = 'mail.wanelville.com';
+  vUsuarioServ : string = 'correio@wanelville.com';
+  vSenhaServ : string = 'Wanel@2018';
+  vPortaServ : string = '465';
+  vNomeRemetente : string = 'transmissao cadCliente XML';
+  vDestinatarioOculto : string = 'dmggermano@gmail.com';
 var
-  vIdSMTP : TIdSMTP;
-  vIdMessage : TIdMessage;
-  vIdAttachment : TIdAttachmentFile;
+  // objetos necessarios para o envio de email
+  IdSSLIOHandlerSocket: TIdSSLIOHandlerSocketOpenSSL;
+  IdSMTP: TIdSMTP;
+  IdMessage: TIdMessage;
+  IdText: TIdText;
+  txt:string;
 begin
-    if (length(trim(anexo)) > 0) then
+
+  result := false;
+
+  // instancia dos objetos
+  IdSSLIOHandlerSocket := TIdSSLIOHandlerSocketOpenSSL.Create();
+  IdSMTP := TIdSMTP.Create(nil);
+  IdMessage := TIdMessage.create(nil);
+
+  try
+    IdSSLIOHandlerSocket.SSLOptions.Method := sslvSSLv23;
+    IdSSLIOHandlerSocket.SSLOptions.Mode := sslmClient;
+
+    { servidor SMTP (TIdSMTP) }
+    IdSMTP.IOHandler := IdSSLIOHandlerSocket;
+    IdSMTP.AuthType :=  satDefault;
+    IdSMTP.Host := vServidorSMTP;
+    IdSMTP.Port := strtoint(vPortaServ);
+    IdSMTP.Username := vUsuarioServ;
+    IdSMTP.Password := vSenhaServ;
+    { acerto da porta smtp}
+    if (IdSMTP.port = 465) then
+        IdSMTP.UseTLS := utUseImplicitTLS
+    else
+        IdSMTP.UseTLS := utUseExplicitTLS;
+
+    { Configuração da mensagem (TIdMessage) }
+    IdMessage.From.Address := vUsuarioServ;
+    IdMessage.From.Name := vNomeRemetente;
+    IdMessage.ReplyTo.EMailAddresses := IdMessage.From.Address;
+    IdMessage.Recipients.EMailAddresses := emailDestinatario;
+    IdMessage.BCCList.EMailAddresses := vDestinatarioOculto;
+    IdMessage.Subject := assunto;
+    IdMessage.Encoding := meMIME;
+
+    { Configuração do corpo do email (TIdText) }
+    IdText := TIdText.Create(IdMessage.MessageParts);
+    IdText.Body.Add(texto);
+    IdText.ContentType := 'text/plain; charset=iso-8859-1';
+
+    { Anexo da mensagem (TIdAttachmentFile) }
+    if FileExists(anexo) then
     begin
-      if FileExists(anexo) = false then
+      TIdAttachmentFile.Create(IdMessage.MessageParts, anexo);
+    end;
+
+    { autenticação }
+    try
+      IdSMTP.Connect;
+      IdSMTP.Authenticate;
+    except
+      on E:Exception do
       begin
-        showmessage('Arquivo anexo não localizado.'+#13+'E-Mail cancelado.');
-        result := false;
-        exit;
+        MessageDlg('Erro na conexão ou autenticação: ' +
+          E.Message, mtWarning, [mbOK], 0);
+        Exit;
       end;
     end;
+
+    { Envio }
     try
-        try
-          vIdSMTP := TIdSMTP.create();
-          vIdSMTP.Host  := vServidorSMTP;
-          vIdSMTP.Username := vUsuarioServ;
-          vIdSMTP.Password := vSenhaServ;
-          vIdSMTP.Port  := strtoint(vPortaServ);
-          vIdSMTP.IOHandler := TIdSSLIOHandlerSocketOpenSSL(nil);
-
-          { autenticacao }
-    //      if chkServerRequerAut.Checked then
-    //          vIdSMTP.AuthenticationType:= atLogin
-    //      else
-    //          vIdSMTP.AuthenticationType:= atNone;
-
-          //-- conexao segura SSL
-    //      if chkSSL.Checked then
-    //          vIdSMTP.IOHandler := TIdSSLIOHandlerSocketOpenSSL;
-    //      else
-    //          IdSMTP1.IOHandler := nil;
-          vIdMessage := tIdMessage.Create();
-    //      vIdMessage.MessageParts.Clear;
-          vIdAttachment := TIdAttachmentFile.Create(nil);
-          vIdAttachment.Create(vIdMessage.MessageParts, anexo); // myFileXML);
-
-          //-- ORIGEM
-          vIdMessage.From.Address := vUsuarioServ;
-          vIdMessage.Subject  := Trim(assunto);
-          vIdMessage.Body.Text  := Trim(texto);
-
-          //-- DESTINO
-          vIdMessage.Recipients.EMailAddresses := Trim(emailDestinatario);
-          vIdMessage.BccList.EMailAddresses  := '';
-          vIdMessage.CCList.EMailAddresses  := 'dmggermano@gmail.com';
-
-          if NOT vIdSMTP.Connected then
-              vIdSMTP.Connect; // .Connect(2000);
-
-          if vIdSMTP.Connected then
-          begin
-              vIdSMTP.Authenticate;
-              vIdSMTP.Send(vIdMessage);
-
-    //      Application.ProcessMessages;
-
-              vIdSMTP.Disconnect;
-          end;
-
-        finally
-          vIdSMTP.Free;
-          vIdMessage.Free;
-        end;
+      IdSMTP.Send(IdMessage);
+      result := true;
     except
-        begin
-            result := false;
-            exit;
-        end;
+      On E:Exception do
+      begin
+        txt:=e.Message;
+        MessageDlg('Erro ao enviar a mensagem: ' +
+          E.Message, mtWarning, [mbOK], 0);
+      end;
     end;
-    result := true;
+  finally
+    { desconecta }
+    IdSMTP.Disconnect;
+
+    { libera objetos da memoria }
+    IdSMTP.Free;
+    IdMessage.Free;
+    IdSSLIOHandlerSocket.Free;
+
+  end;
+
 end;
 
 end.
+

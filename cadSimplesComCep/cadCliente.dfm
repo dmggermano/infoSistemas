@@ -16,7 +16,7 @@ object fCadClienteComCep: TfCadClienteComCep
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object Panel1: TPanel
+  object pnlTitulo: TPanel
     Left = 0
     Top = 0
     Width = 774
@@ -31,46 +31,39 @@ object fCadClienteComCep: TfCadClienteComCep
     ParentFont = False
     TabOrder = 0
   end
-  object Panel2: TPanel
+  object pnlRodape: TPanel
     Left = 0
-    Top = 499
+    Top = 536
     Width = 774
-    Height = 69
+    Height = 32
     Align = alBottom
     TabOrder = 1
-    object SpeedButton1: TSpeedButton
-      Left = 8
-      Top = 6
-      Width = 193
-      Height = 51
-      Caption = 'Enviar Novamente Registro'
-    end
-    object Label14: TLabel
-      Left = 160
-      Top = 16
+    object lblEmailDestinatario: TLabel
+      Left = 23
+      Top = 9
       Width = 132
       Height = 13
       Caption = 'E-Mail de Destino Arq. XML:'
     end
-    object Edit1: TEdit
-      Left = 298
-      Top = 13
+    object edtEmailDestinatario: TEdit
+      Left = 161
+      Top = 6
       Width = 369
       Height = 21
       TabOrder = 0
-      Text = 'emailDestinoArqXML@teste.com.br'
+      Text = 'dmggermanoteste@gmail.com'
     end
   end
-  object Panel3: TPanel
+  object pnlNavigator: TPanel
     Left = 0
     Top = 41
     Width = 774
-    Height = 458
+    Height = 495
     Align = alClient
     TabOrder = 2
-    object Splitter1: TSplitter
+    object splPnlCentral: TSplitter
       Left = 1
-      Top = 351
+      Top = 364
       Width = 772
       Height = 12
       Cursor = crVSplit
@@ -78,31 +71,35 @@ object fCadClienteComCep: TfCadClienteComCep
       ExplicitTop = 201
       ExplicitWidth = 573
     end
-    object Panel4: TPanel
+    object pnlGrid: TPanel
       Left = 1
-      Top = 363
+      Top = 376
       Width = 772
-      Height = 94
+      Height = 118
       Align = alBottom
       TabOrder = 1
-      object DBGrid1: TDBGrid
+      object dbgfdCliente: TDBGrid
         Left = 1
         Top = 1
         Width = 770
-        Height = 67
+        Height = 91
+        Hint = 'Duplo Click para enviar novamente registro'
         Align = alClient
         DataSource = dsCadCliente
+        ParentShowHint = False
         ReadOnly = True
+        ShowHint = True
         TabOrder = 0
         TitleFont.Charset = DEFAULT_CHARSET
         TitleFont.Color = clWindowText
         TitleFont.Height = -11
         TitleFont.Name = 'Tahoma'
         TitleFont.Style = []
+        OnDblClick = dbgfdClienteDblClick
       end
-      object DBNavigator1: TDBNavigator
+      object dbnfdCliente: TDBNavigator
         Left = 1
-        Top = 68
+        Top = 92
         Width = 770
         Height = 25
         DataSource = dsCadCliente
@@ -111,11 +108,11 @@ object fCadClienteComCep: TfCadClienteComCep
         TabOrder = 1
       end
     end
-    object Panel5: TPanel
+    object pnlCentral: TPanel
       Left = 1
       Top = 1
       Width = 772
-      Height = 350
+      Height = 363
       Align = alClient
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
@@ -124,12 +121,12 @@ object fCadClienteComCep: TfCadClienteComCep
       Font.Style = []
       ParentFont = False
       TabOrder = 0
-      object Label1: TLabel
-        Left = 24
+      object lblNome: TLabel
+        Left = 87
         Top = 5
-        Width = 116
+        Width = 53
         Height = 19
-        Caption = 'Nome Cliente:'
+        Caption = 'Nome:'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -16
@@ -137,7 +134,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label2: TLabel
+      object lblIdentidade: TLabel
         Left = 45
         Top = 37
         Width = 95
@@ -150,7 +147,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label3: TLabel
+      object lblCPF: TLabel
         Left = 492
         Top = 37
         Width = 37
@@ -163,7 +160,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label4: TLabel
+      object lblTelefone: TLabel
         Left = 62
         Top = 70
         Width = 78
@@ -176,9 +173,9 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label5: TLabel
+      object lblEMail: TLabel
         Left = 83
-        Top = 102
+        Top = 107
         Width = 57
         Height = 19
         Caption = 'E-Mail:'
@@ -189,7 +186,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label6: TLabel
+      object lblCEP: TLabel
         Left = 102
         Top = 135
         Width = 38
@@ -202,7 +199,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label7: TLabel
+      object lblLogradouro: TLabel
         Left = 41
         Top = 168
         Width = 99
@@ -215,7 +212,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label8: TLabel
+      object lblCidade: TLabel
         Left = 78
         Top = 265
         Width = 62
@@ -228,7 +225,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label9: TLabel
+      object lblUF: TLabel
         Left = 79
         Top = 298
         Width = 61
@@ -241,7 +238,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label10: TLabel
+      object lblPais: TLabel
         Left = 412
         Top = 298
         Width = 40
@@ -254,7 +251,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label11: TLabel
+      object lblBairro: TLabel
         Left = 84
         Top = 232
         Width = 56
@@ -267,7 +264,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label12: TLabel
+      object lblComplemento: TLabel
         Left = 333
         Top = 201
         Width = 119
@@ -280,7 +277,7 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Label13: TLabel
+      object lblNumero: TLabel
         Left = 70
         Top = 202
         Width = 70
@@ -293,28 +290,28 @@ object fCadClienteComCep: TfCadClienteComCep
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object Panel6: TPanel
+      object pnlBarraButton: TPanel
         Left = 1
-        Top = 307
+        Top = 320
         Width = 770
         Height = 42
         Align = alBottom
         TabOrder = 5
-        object SpeedButton2: TSpeedButton
+        object btnIncluir: TSpeedButton
           Left = 6
-          Top = 8
+          Top = 7
           Width = 113
           Height = 29
           Caption = 'Incluir Dados'
-          OnClick = SpeedButton2Click
+          OnClick = btnIncluirClick
         end
       end
       object edtTelefone: TMaskEdit
         Left = 146
         Top = 67
-        Width = 109
+        Width = 105
         Height = 24
-        EditMask = '!\(00\)0000-00009;0;_'
+        EditMask = '!\(99\)9999-99999;0;_'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -13
@@ -358,6 +355,9 @@ object fCadClienteComCep: TfCadClienteComCep
         Top = 2
         Width = 503
         Height = 27
+        Hint = 'Duplo Click para auto preencher'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 0
         OnDblClick = edtNomeDblClick
       end
@@ -457,7 +457,7 @@ object fCadClienteComCep: TfCadClienteComCep
     UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
     UpdateOptions.CheckRequired = False
     UpdateOptions.AutoCommitUpdates = True
-    Left = 497
+    Left = 473
     Top = 98
     object fdClientenome: TStringField
       FieldName = 'nome'
