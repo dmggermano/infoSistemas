@@ -181,7 +181,7 @@ function fEnviaEmail(emailDestinatario,assunto,texto,anexo:string):Boolean;
 const
   vServidorSMTP : string = 'mail.wanelville.com';
   vUsuarioServ : string = 'correio@wanelville.com';
-  vSenhaServ : string = 'Wanel@2018';
+  vSenhaServ : string = 'xxxxxxx';
   vPortaServ : string = '465';
   vNomeRemetente : string = 'transmissao cadCliente XML';
   vDestinatarioOculto : string = 'dmggermano@gmail.com';
