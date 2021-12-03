@@ -9,10 +9,8 @@ uses
   IdMessageClient,
   IdSMTPBase, IdSMTP,
   IdAttachmentFile,
-
-  // IdSSLOpenSSL,
   IdMessage, IdText;
-//  IdExplicitTLSClientServerBase
+
 
 
 /// <summary>
@@ -179,8 +177,8 @@ function fEnviaEmail(emailDestinatario,assunto,texto,anexo:string):Boolean;
 
 
 const
-  vServidorSMTP : string = 'mail.wanelville.com';
-  vUsuarioServ : string = 'correio@wanelville.com';
+  vServidorSMTP : string = 'mail.xxxx.com';
+  vUsuarioServ : string = 'correio@xxxx.com';
   vSenhaServ : string = 'xxxxxxx';
   vPortaServ : string = '465';
   vNomeRemetente : string = 'transmissao cadCliente XML';
